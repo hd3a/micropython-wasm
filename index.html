@@ -2,36 +2,51 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>MicroPython WASM</title>
+  <title>MicroPython WASM Terminal</title>
+  <style>
+    body { font-family: monospace; background: #1e1e1e; color: #eee; padding: 20px; }
+    #terminal { background: #000; padding: 10px; height: 400px; overflow-y: auto; white-space: pre-wrap; }
+    #input { width: 100%; padding: 5px; background: #222; color: #eee; border: none; outline: none; }
+  </style>
 </head>
 <body>
-  <h1>MicroPython WASM Example</h1>
-  <textarea id="code" rows="5" cols="50">
-print("Hello WASM!")
-  </textarea><br>
-  <button id="run">Run</button>
-  <pre id="output"></pre>
+  <h1>MicroPython WASM Terminal</h1>
+  <div id="terminal"></div>
+  <input type="text" id="input" placeholder="Type Python code and press Enter">
 
   <script type="module">
     import { loadMicroPython } from './micropython.mjs';
 
     async function main() {
-      // 出力をカスタム
+      const terminal = document.getElementById('terminal');
+      const input = document.getElementById('input');
+
+      // 出力をターミナルに表示
       const stdoutWriter = (line) => {
-        document.getElementById('output').innerText += line + "\n";
+        terminal.textContent += line + "\n";
+        terminal.scrollTop = terminal.scrollHeight;
       };
 
-      const mp = await loadMicroPython({stdout: stdoutWriter});
+      const mp = await loadMicroPython({stdout: stdoutWriter, stderr: stdoutWriter});
 
-      document.getElementById('run').onclick = async () => {
-        const code = document.getElementById('code').value;
-        await mp.runPythonAsync(code);  // 非同期で実行可能
-      };
+      // REPL 初期化
+      await mp.replInit();
+
+      input.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          const code = input.value;
+          terminal.textContent += `>>> ${code}\n`;
+          input.value = '';
+          try {
+            await mp.replProcessCharWithAsyncify(code + '\n');
+          } catch (err) {
+            terminal.textContent += err + "\n";
+          }
+        }
+      });
     }
 
     main();
   </script>
 </body>
 </html>
-
-
