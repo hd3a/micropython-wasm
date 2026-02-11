@@ -1,47 +1,31 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>MicroPython WASM REPL</title>
-  <style>
-    body { font-family: monospace; padding: 20px; }
-    textarea { width: 100%; height: 150px; }
-    pre { background: #f0f0f0; padding: 10px; min-height: 100px; }
-  </style>
+  <meta charset="utf-8">
+  <title>MicroPython WASM</title>
 </head>
 <body>
-  <h1>MicroPython WASM REPL</h1>
-
-  <textarea id="code">print("Hello WASM!")</textarea><br>
+  <h1>MicroPython WASM Example</h1>
+  <textarea id="code" rows="5" cols="50">
+print("Hello WASM!")
+  </textarea><br>
   <button id="run">Run</button>
   <pre id="output"></pre>
 
   <script type="module">
-    import init from './micropython.mjs';
-
-    let mp;
+    import { loadMicroPython } from './micropython.mjs';
 
     async function main() {
-      // WASM 初期化
-      mp = await init();
+      // 出力をカスタム
+      const stdoutWriter = (line) => {
+        document.getElementById('output').innerText += line + "\n";
+      };
 
-      // 出力をフック
-      const output = document.getElementById('output');
-      mp.set_stdout((text) => {
-        output.textContent += text;
-      });
-      mp.set_stderr((text) => {
-        output.textContent += text;
-      });
+      const mp = await loadMicroPython({stdout: stdoutWriter});
 
-      document.getElementById('run').onclick = () => {
+      document.getElementById('run').onclick = async () => {
         const code = document.getElementById('code').value;
-        output.textContent += `>>> ${code}\n`;
-        try {
-          mp.run(code);  // REPL 実行
-        } catch (e) {
-          output.textContent += e + '\n';
-        }
+        await mp.runPythonAsync(code);  // 非同期で実行可能
       };
     }
 
@@ -49,4 +33,5 @@
   </script>
 </body>
 </html>
+
 
