@@ -12,7 +12,7 @@
 <body>
   <h1>MicroPython WASM Terminal</h1>
   <div id="terminal"></div>
-  <textarea id="input" rows="2" placeholder="Type Python code and press Enter (Shift+Enter for newline)"></textarea>
+  <textarea id="input" rows="3" placeholder="Type Python code and press Enter (Shift+Enter for newline)"></textarea>
 
   <script type="module">
     import { loadMicroPython } from './micropython.mjs';
@@ -27,7 +27,6 @@
       };
 
       const mp = await loadMicroPython({stdout: stdoutWriter, stderr: stdoutWriter});
-      await mp.replInit();
 
       input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
@@ -35,15 +34,16 @@
             // Shift+Enter → 改行だけ
             input.value += '\n';
           } else {
-            // Enter → 実行
             e.preventDefault();
-            const code = input.value + '\n';
-            terminal.textContent += '>>> ' + input.value.replace(/\n/g, '\n... ') + '\n';
+            const code = input.value;
+            terminal.textContent += '>>> ' + code.replace(/\n/g, '\n... ') + '\n';
             input.value = '';
 
-            // 文字単位で REPL に送信
-            for (let i = 0; i < code.length; i++) {
-              await mp.replProcessCharWithAsyncify(code[i]);
+            // Python をまとめて実行
+            try {
+              await mp.runPythonAsync(code);
+            } catch (err) {
+              terminal.textContent += err + '\n';
             }
           }
         }
