@@ -2,14 +2,17 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>MicroPython WASM</title>
+  <title>MicroPython WASM REPL</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    textarea { width: 100%; height: 150px; }
+    pre { background: #f0f0f0; padding: 10px; min-height: 100px; }
+  </style>
 </head>
 <body>
-  <h1>MicroPython in Browser</h1>
+  <h1>MicroPython WASM REPL</h1>
 
-  <textarea id="code" rows="10" cols="50">
-print("Hello WASM!")
-  </textarea><br>
+  <textarea id="code">print("Hello WASM!")</textarea><br>
   <button id="run">Run</button>
   <pre id="output"></pre>
 
@@ -22,12 +25,22 @@ print("Hello WASM!")
       // WASM 初期化
       mp = await init();
 
+      // 出力をフック
+      const output = document.getElementById('output');
+      mp.set_stdout((text) => {
+        output.textContent += text;
+      });
+      mp.set_stderr((text) => {
+        output.textContent += text;
+      });
+
       document.getElementById('run').onclick = () => {
+        const code = document.getElementById('code').value;
+        output.textContent += `>>> ${code}\n`;
         try {
-          // pyexec を呼ぶ
-          mp.pyexec(document.getElementById('code').value);
+          mp.run(code);  // REPL 実行
         } catch (e) {
-          document.getElementById('output').textContent = e;
+          output.textContent += e + '\n';
         }
       };
     }
@@ -36,3 +49,4 @@ print("Hello WASM!")
   </script>
 </body>
 </html>
+
