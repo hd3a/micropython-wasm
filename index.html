@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>MicroPython WASM</title>
 </head>
 <body>
   <h1>MicroPython in Browser</h1>
+
   <textarea id="code" rows="10" cols="50">
 print("Hello WASM!")
   </textarea><br>
@@ -13,21 +14,20 @@ print("Hello WASM!")
   <pre id="output"></pre>
 
   <script type="module">
-    import init, { pyexec } from './micropython.mjs';
+    import init from './micropython.mjs';
+
+    let mp;
 
     async function main() {
-      await init();  // WASM モジュール初期化
+      // WASM 初期化
+      mp = await init();
 
-      const runBtn = document.getElementById('run');
-      const codeArea = document.getElementById('code');
-      const output = document.getElementById('output');
-
-      runBtn.onclick = () => {
+      document.getElementById('run').onclick = () => {
         try {
-          const result = pyexec(codeArea.value);
-          output.textContent = result;
+          // pyexec を呼ぶ
+          mp.pyexec(document.getElementById('code').value);
         } catch (e) {
-          output.textContent = e;
+          document.getElementById('output').textContent = e;
         }
       };
     }
