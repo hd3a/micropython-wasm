@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MicroPython WASM</title>
+</head>
+<body>
+  <h1>MicroPython in Browser</h1>
+  <textarea id="code" rows="10" cols="50">
+print("Hello WASM!")
+  </textarea><br>
+  <button id="run">Run</button>
+  <pre id="output"></pre>
+
+  <script type="module">
+    import init, { pyexec } from './micropython.mjs';
+
+    async function main() {
+      await init();  // WASM モジュール初期化
+
+      const runBtn = document.getElementById('run');
+      const codeArea = document.getElementById('code');
+      const output = document.getElementById('output');
+
+      runBtn.onclick = () => {
+        try {
+          const result = pyexec(codeArea.value);
+          output.textContent = result;
+        } catch (e) {
+          output.textContent = e;
+        }
+      };
+    }
+
+    main();
+  </script>
+</body>
+</html>
